@@ -1,0 +1,40 @@
+version: '2'
+
+services:
+    db:
+        image: mysql
+        ports:
+            - 3306:3306
+        volumes:
+            - "./.data/db:/var/lib/mysql"
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+            MYSQL_USER: ${MYSQL_USER}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    php:
+        build:
+            context: php-fpm
+            args:
+                - http_proxy=${PROXY}
+                - https_proxy=${PROXY}
+        ports:
+            - 9000:9000
+        environment:
+            - http_proxy=${PROXY}
+            - https_proxy=${PROXY}
+        volumes:
+            - ${SYMFONY_APP_PATH}:/var/www/sf-semanticui.dev
+            - ./logs/sf-semanticui:/var/www/sf-semanticui.dev/app/logs
+    nginx:
+        build:
+            context: nginx
+            args:
+                - http_proxy=${PROXY}
+                - https_proxy=${PROXY}
+        ports:
+            - 80:80
+        volumes_from:
+            - php
+        volumes:
+            - ./logs/nginx/:/var/log/nginx
